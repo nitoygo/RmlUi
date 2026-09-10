@@ -1019,50 +1019,78 @@ void RenderInterface_SDL_GPU::EndFrame()
 
 	EndRenderPass();
 
-	// Where the swapchain agrees with the layers in format and size, the frame resolves straight into it; otherwise
-	// the resolve goes to a postprocess target and a blit converts from there. Only the first route leaves the
-	// samples still needed, by CaptureScreen().
+	// Composited onto the swapchain with real alpha blending rather than a hardware MSAA resolve or a straight
+	// SDL_BlitGPUTexture, so the game's own 3D scene (drawn into this same swapchain texture earlier in the frame,
+	// see RmlUiRuntime::Render()) shows through instead of being overwritten -- upstream's resolve/blit fast path is
+	// fine for its own sample shell, which always clears the swapchain itself and is the only thing drawing into it
+	// that frame, so an unconditional overwrite there is indistinguishable from a blend.
+	//
+	// The blend cannot be done with a pipeline draw straight into swapchain_texture, though -- every pipeline this
+	// class builds targets the fixed `layer_format` (R8G8B8A8_UNORM, see this class's own declaration), but the
+	// swapchain's real format is whatever SDL_GetGPUSwapchainTextureFormat() reports (commonly B8G8R8A8_UNORM on
+	// Windows/Vulkan) and is under no obligation to match. A pipeline created for one color-target format used in a
+	// render pass with a different actual attachment format is invalid, and confirmed the hard way to crash rather
+	// than error cleanly: an access violation inside amdvlk64.dll (AMD's Vulkan ICD), at an identical fault offset
+	// across repeated runs, the very first time this code drew straight into the swapchain. The ORIGINAL resolve/
+	// blit code already knew this -- its own `resolve_to_swapchain` fast path only resolved directly into the
+	// swapchain when `swapchain_format == layer_format`, falling back to SDL_BlitGPUTexture (a real hardware blit,
+	// which converts format for free, unlike a pipeline draw) otherwise. Removing that branch for the blend broke
+	// the same guarantee it existed for.
+	//
+	// Fixed by keeping the blend entirely inside layer_format-compatible textures and using two real hardware blits
+	// (format-converting, safe regardless of swapchain format) only at the two boundary crossings: capture the
+	// swapchain's current content into a spare postprocess target, blend RmlUi's own resolved layer onto that copy
+	// (both operands now layer_format, the same safe pipeline path CompositeLayers() already uses internally to
+	// stack RmlUi's own layers), then blit the composited result back onto the real swapchain. Reuses
+	// RenderLayerStack's own already-managed, already-correctly-sized scratch target (GetPostprocessSecondary())
+	// rather than this class owning a second one itself.
 	const RenderTarget* base_layer = render_layers.GetBaseLayer();
 	const bool have_frame = (command_buffer && swapchain_texture && base_layer && base_layer->color);
-	const SDL_GPUTextureFormat swapchain_format =
-		(have_frame && window) ? SDL_GetGPUSwapchainTextureFormat(device, window) : SDL_GPU_TEXTUREFORMAT_INVALID;
-	const bool resolve_to_swapchain = have_frame && render_layers.IsMultisampled() && swapchain_format == layer_format &&
-		swapchain_width == static_cast<uint32_t>(base_layer->width) && swapchain_height == static_cast<uint32_t>(base_layer->height);
 
-	if (resolve_to_swapchain)
+	// A multisampled layer's texture holds samples, not pixels, and can't be sampled by the composite draw below
+	// directly -- resolve it into the postprocess target first, same as every other reader of a layer already does
+	// (BlitLayerToPostprocessPrimary/CompositeLayers' own via_postprocess path).
+	const RenderTarget* frame = base_layer;
+	if (have_frame && render_layers.IsMultisampled())
 	{
+		const RenderTarget& resolved = render_layers.GetPostprocessPrimary();
+		frame = ResolveTarget(command_buffer, *base_layer, resolved, false) ? &resolved : nullptr;
+		frame_resolved_into_postprocess = (frame != nullptr);
+	}
+
+	if (have_frame && frame && frame->color)
+	{
+		const RenderTarget& scene_capture = render_layers.GetPostprocessSecondary();
+
+		SDL_GPUBlitInfo capture_blit{};
+		capture_blit.source.texture = swapchain_texture;
+		capture_blit.source.w = swapchain_width;
+		capture_blit.source.h = swapchain_height;
+		capture_blit.destination.texture = scene_capture.color;
+		capture_blit.destination.w = static_cast<Uint32>(scene_capture.width);
+		capture_blit.destination.h = static_cast<Uint32>(scene_capture.height);
+		capture_blit.load_op = SDL_GPU_LOADOP_DONT_CARE;
+		capture_blit.filter = SDL_GPU_FILTER_NEAREST;
+		SDL_BlitGPUTexture(command_buffer, &capture_blit);
+
+		DrawTextureToTarget(scene_capture, frame->color, Blending::Blend);
+		EndRenderPass();
+
 		RenderTarget swapchain_target;
 		swapchain_target.color = swapchain_texture;
 		swapchain_target.width = static_cast<int>(swapchain_width);
 		swapchain_target.height = static_cast<int>(swapchain_height);
-		ResolveTarget(command_buffer, *base_layer, swapchain_target, true);
-	}
-	else
-	{
-		// The blit samples its source, so a multisampled frame has to be resolved first -- into the postprocess
-		// target, which is where every other reader of a layer takes it from as well. Its samples are of no further
-		// use: nothing draws into the frame after this, and the capture below reads what the resolve left behind.
-		const RenderTarget* frame = base_layer;
-		if (have_frame && render_layers.IsMultisampled())
-		{
-			const RenderTarget& resolved = render_layers.GetPostprocessPrimary();
-			frame = ResolveTarget(command_buffer, *base_layer, resolved, false) ? &resolved : nullptr;
-			frame_resolved_into_postprocess = (frame != nullptr);
-		}
 
-		if (have_frame && frame && frame->color)
-		{
-			SDL_GPUBlitInfo blit{};
-			blit.source.texture = frame->color;
-			blit.source.w = static_cast<Uint32>(frame->width);
-			blit.source.h = static_cast<Uint32>(frame->height);
-			blit.destination.texture = swapchain_texture;
-			blit.destination.w = swapchain_width;
-			blit.destination.h = swapchain_height;
-			blit.load_op = SDL_GPU_LOADOP_DONT_CARE;
-			blit.filter = SDL_GPU_FILTER_NEAREST;
-			SDL_BlitGPUTexture(command_buffer, &blit);
-		}
+		SDL_GPUBlitInfo writeback_blit{};
+		writeback_blit.source.texture = scene_capture.color;
+		writeback_blit.source.w = static_cast<Uint32>(scene_capture.width);
+		writeback_blit.source.h = static_cast<Uint32>(scene_capture.height);
+		writeback_blit.destination.texture = swapchain_texture;
+		writeback_blit.destination.w = swapchain_width;
+		writeback_blit.destination.h = swapchain_height;
+		writeback_blit.load_op = SDL_GPU_LOADOP_DONT_CARE;
+		writeback_blit.filter = SDL_GPU_FILTER_NEAREST;
+		SDL_BlitGPUTexture(command_buffer, &writeback_blit);
 	}
 
 	render_layers.EndFrame();
