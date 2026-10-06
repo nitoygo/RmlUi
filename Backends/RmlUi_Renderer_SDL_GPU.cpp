@@ -951,6 +951,7 @@ void RenderInterface_SDL_GPU::BeginFrame(SDL_GPUCommandBuffer* in_command_buffer
 	frame_index += 1;
 	frame_active = true;
 	frame_resolved_into_postprocess = false;
+	frame_base_layer_seeded = false;
 
 	vertex_arena.BeginFrame(frame_index);
 	index_arena.BeginFrame(frame_index);
@@ -993,7 +994,38 @@ void RenderInterface_SDL_GPU::BeginFrame(SDL_GPUCommandBuffer* in_command_buffer
 
 	EnsureQuads(static_cast<int>(width), static_cast<int>(height));
 
-	EnsureRenderPass(render_layers.GetTopLayer(), true);
+	frame_base_layer_seeded = SeedBaseLayerFromSwapchain();
+	if (!frame_base_layer_seeded)
+		EnsureRenderPass(render_layers.GetTopLayer(), true);
+}
+
+// The base layer starts the frame as a copy of what the swapchain already holds -- the game's scene, drawn earlier in
+// the frame -- rather than cleared. RmlUi draws onto that copy exactly as it would have been composited onto the
+// swapchain, and a backdrop-filter on the base layer now has the scene to read, not an empty layer. The copy goes
+// through the secondary postprocess target, which is free until the frame's first filter, and is drawn rather than
+// blitted into the layer because a multisampled texture cannot be a blit destination.
+bool RenderInterface_SDL_GPU::SeedBaseLayerFromSwapchain()
+{
+	const RenderTarget* base_layer = render_layers.GetBaseLayer();
+	if (!command_buffer || !swapchain_texture || !base_layer || !base_layer->color)
+		return false;
+
+	const RenderTarget& scene = render_layers.GetPostprocessSecondary();
+	if (!scene.color)
+		return false;
+
+	SDL_GPUBlitInfo capture_blit{};
+	capture_blit.source.texture = swapchain_texture;
+	capture_blit.source.w = swapchain_width;
+	capture_blit.source.h = swapchain_height;
+	capture_blit.destination.texture = scene.color;
+	capture_blit.destination.w = static_cast<Uint32>(scene.width);
+	capture_blit.destination.h = static_cast<Uint32>(scene.height);
+	capture_blit.load_op = SDL_GPU_LOADOP_DONT_CARE;
+	capture_blit.filter = SDL_GPU_FILTER_NEAREST;
+	SDL_BlitGPUTexture(command_buffer, &capture_blit);
+
+	return DrawTextureToTarget(*base_layer, scene.color, Blending::Replace);
 }
 
 void RenderInterface_SDL_GPU::EndFrame()
@@ -1058,7 +1090,23 @@ void RenderInterface_SDL_GPU::EndFrame()
 		frame_resolved_into_postprocess = (frame != nullptr);
 	}
 
-	if (have_frame && frame && frame->color)
+	if (have_frame && frame && frame->color && frame_base_layer_seeded)
+	{
+		// The layer already holds the scene with the UI drawn over it: it replaces the swapchain's content.
+		EndRenderPass();
+
+		SDL_GPUBlitInfo writeback_blit{};
+		writeback_blit.source.texture = frame->color;
+		writeback_blit.source.w = static_cast<Uint32>(frame->width);
+		writeback_blit.source.h = static_cast<Uint32>(frame->height);
+		writeback_blit.destination.texture = swapchain_texture;
+		writeback_blit.destination.w = swapchain_width;
+		writeback_blit.destination.h = swapchain_height;
+		writeback_blit.load_op = SDL_GPU_LOADOP_DONT_CARE;
+		writeback_blit.filter = SDL_GPU_FILTER_NEAREST;
+		SDL_BlitGPUTexture(command_buffer, &writeback_blit);
+	}
+	else if (have_frame && frame && frame->color)
 	{
 		const RenderTarget& scene_capture = render_layers.GetPostprocessSecondary();
 

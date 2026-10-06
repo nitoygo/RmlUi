@@ -472,6 +472,7 @@ private:
 		Rml::Rectanglei destination_region);
 	void ClearScissorRegion();
 	void ClearRegion(const RenderTarget& target);
+	bool SeedBaseLayerFromSwapchain();
 	bool EnsureQuads(int width, int height);
 	void ReleaseQuads();
 
@@ -522,6 +523,8 @@ private:
 	// there to reach the swapchain, and then it also drops the layer's samples -- so this is both what lets
 	// CaptureScreen() read the frame without resolving again and what tells it that resolving again is not an option.
 	bool frame_resolved_into_postprocess = false;
+	// The base layer started the frame as a copy of the swapchain, see SeedBaseLayerFromSwapchain().
+	bool frame_base_layer_seeded = false;
 
 	// Everything RmlUi asked for and has not given back. RmlUi releases each of them during Rml::Shutdown(), which
 	// clients call before shutting the backend down, so all four are zero by the time Shutdown() runs. A leak in a
