@@ -2,7 +2,7 @@
 
 ![RmlUi logo](https://github.com/mikke89/RmlUiDoc/raw/c7253748d1bcf6dd33d97ab4fe8b6731a7ee3dac/assets/rmlui.png)
 
-RmlUi - now with added boosters taking control of the rocket, targeting *your* games and applications.
+RmlUi - now with added boosters taking control of the rocket, targeting _your_ games and applications.
 
 ---
 
@@ -12,7 +12,7 @@ RmlUi - now with added boosters taking control of the rocket, targeting *your* g
 
 RmlUi is the C++ user interface package based on the HTML and CSS standards, designed as a complete solution for any project's interface needs. It is a fork of the [libRocket](https://github.com/libRocket/libRocket) project, introducing new features, bug fixes, and performance improvements.
 
-RmlUi aims at being a light-weight and performant library with its own layout engine and few dependencies. In essence, RmlUi takes your HTML/CSS-like source files and turns them into vertices, indices and draw commands, and then you bring your own renderer to draw them. And of course there is full access to the element hierarchy/DOM, event handling, and all the interactivity and customizability you would expect. All of this directly from C++, or optionally from scripting languages using plugins. The core library compiles down to fractions of the size it takes to integrate a fully fledged web browser. 
+RmlUi aims at being a light-weight and performant library with its own layout engine and few dependencies. In essence, RmlUi takes your HTML/CSS-like source files and turns them into vertices, indices and draw commands, and then you bring your own renderer to draw them. And of course there is full access to the element hierarchy/DOM, event handling, and all the interactivity and customizability you would expect. All of this directly from C++, or optionally from scripting languages using plugins. The core library compiles down to fractions of the size it takes to integrate a fully fledged web browser.
 
 RmlUi is based around the XHTML1 and CSS2 standards while integrating features from HTML5 and CSS3, and extends them with features suited towards real-time applications. Take a look at the [conformance](#conformance) and [enhancements](#enhancements) sections below for details.
 
@@ -58,9 +58,10 @@ RmlUi supports most of CSS2 with some CSS3 features such as
 - Gradients (linear, radial, and conic) as decorators
 - Filters and backdrop filters (with all CSS filter functions)
 
-and many of the common HTML elements including `<input>`,  `<textarea>`, and `<select>`.
+and many of the common HTML elements including `<input>`, `<textarea>`, and `<select>`.
 
 For details, see
+
 - [RCSS Property index](https://mikke89.github.io/RmlUiDoc/pages/rcss/property_index.html) for all supported properties and differences from CSS.
 - [RML Element index](https://mikke89.github.io/RmlUiDoc/pages/rml/element_index.html) for all supported elements.
 
@@ -81,7 +82,6 @@ RmlUi adds features and enhancements over CSS and HTML where it makes sense, mos
 - The standard library.
 
 In addition, a C++17 compatible compiler is required.
-
 
 ## Building RmlUi
 
@@ -108,6 +108,7 @@ cd RmlUi
 cmake -B Build -S . --preset samples -DRMLUI_BACKEND=GLFW_GL3 -DCMAKE_TOOLCHAIN_FILE="<path-to-vcpkg>/scripts/buildsystems/vcpkg.cmake"
 cmake --build Build
 ```
+
 Make sure to replace `<path-to-vcpkg>` as appropriate. This example uses the `GLFW_GL3` backend, other backends are available as shown below. When this completes, feel free to test the freshly built samples, such as the `invaders` sample (`rmlui_sample_invaders` target), and enjoy! The executables should be located somewhere in the `Build` directory.
 
 To make all the samples available, you can additionally install `lua lunasvg rlottie harfbuzz` and pass `--preset samples-all` during CMake configuration.
@@ -115,7 +116,6 @@ To make all the samples available, you can additionally install `lua lunasvg rlo
 ### Conan
 
 RmlUi is readily available from [ConanCenter](https://conan.io/center/recipes/rmlui).
-
 
 ## Integrating RmlUi
 
@@ -129,14 +129,13 @@ Here are the general steps to integrate the library into a C++ application, have
 
 Several [samples](Samples/) demonstrate everything from basic integration to more complex use of the library, feel free to have a look for inspiration.
 
-
 ## RmlUi Backends
 
 To ease the integration of RmlUi, the library includes [many backends](Backends/) adding support for common renderers and platforms. The following terms are used here:
 
-- ***Renderer***: Implements the [render interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/render.html) for a given rendering API, and provides initialization code when necessary.
-- ***Platform***: Implements the [system interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/system.html) for a given platform (operating system or window library), and adds procedures for providing input to RmlUi contexts.
-- ***Backend***: Combines a renderer and a platform for a complete windowing framework sample, implementing the basic [Backend interface](Backends/RmlUi_Backend.h).
+- **_Renderer_**: Implements the [render interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/render.html) for a given rendering API, and provides initialization code when necessary.
+- **_Platform_**: Implements the [system interface](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual/interfaces/system.html) for a given platform (operating system or window library), and adds procedures for providing input to RmlUi contexts.
+- **_Backend_**: Combines a renderer and a platform for a complete windowing framework sample, implementing the basic [Backend interface](Backends/RmlUi_Backend.h).
 
 The provided renderers and platforms are intended to be usable as-is by client projects without modifications, thereby circumventing the need to write custom interfaces. We encourage users to only make changes here when they are useful to all users, and then contribute back to the project. However, if they do not meet your needs it is also possible to copy them into your project for modifications. Feedback is welcome to find the proper abstraction level. The provided system and render interfaces are designed such that they can be derived from and further customized by the backend or end user.
 
@@ -145,16 +144,18 @@ The provided backends on the other hand are not intended to be used directly by 
 ### Renderers
 
 | Renderer features | Basic rendering | Transforms | Clip masks | Filters | Shaders | Built-in image support                                            |
-|-------------------|:---------------:|:----------:|:----------:|:-------:|:-------:|-------------------------------------------------------------------|
-| OpenGL 3 (GL3)*   |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
+| ----------------- | :-------------: | :--------: | :--------: | :-----: | :-----: | ----------------------------------------------------------------- |
+| OpenGL 3 (GL3)\*  |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
 | OpenGL 2 (GL2)    |       ✔️        |     ✔️     |     ✔️     |   ❌    |   ❌    | Uncompressed TGA                                                  |
 | Vulkan (VK)       |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
-| SDL GPU           |       ✔️        |     ✔️     |     ❌     |   ❌    |   ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
-| DirectX 11¹       |       ✔️        |     ✔️     |     ✔️     |   🟡    |   ✔️    | Uncompressed TGA                                                  |
+| SDL GPU¹          |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| SDLrenderer       |       ✔️        |     ❌     |     ❌     |   ❌    |   ❌    | Based on [SDL_image](https://wiki.libsdl.org/SDL_image/FrontPage) |
+| DirectX 11²       |       ✔️        |     ✔️     |     ✔️     |   🟡    |   ✔️    | Uncompressed TGA                                                  |
 | DirectX 12        |       ✔️        |     ✔️     |     ✔️     |   ✔️    |   ✔️    | Uncompressed TGA                                                  |
 
-*\* Reference implementation* \
-*¹ Filters are fully featured, but some open issues remain ([details](https://github.com/mikke89/RmlUi/pull/675#issuecomment-2821714716))*
+_\* Reference implementation_ \
+_¹ The renderer has been verified on the Vulkan driver of SDL GPU. Its Direct3D 12 and Metal drivers are built in CI, but not yet exercised at runtime._ \
+_² Filters are fully featured, but some open issues remain ([details](https://github.com/mikke89/RmlUi/pull/675#issuecomment-2821714716))_
 
 **Basic rendering**: Render geometry with colors, textures, and rectangular clipping (scissoring). Sufficient for basic 2D layouts.\
 **Transforms**: Enables the `transform` and `perspective` properties to take effect.\
@@ -166,7 +167,7 @@ The provided backends on the other hand are not intended to be used directly by 
 ### Platforms
 
 | Platform | Basic windowing | Clipboard | High DPI | Touch | IME | Comments                                                                      |
-|----------|:---------------:|:---------:|:--------:|:-----:|:---:|-------------------------------------------------------------------------------|
+| -------- | :-------------: | :-------: | :------: | :---: | :-: | ----------------------------------------------------------------------------- |
 | SDL      |       ✔️        |    ✔️     |    ✔️    |  ✔️   | ✔️  | Supports SDL 2 and SDL 3. High DPI supported only on SDL 3.                   |
 | GLFW     |       ✔️        |    ✔️     |    ✔️    |  ❌   | ❌  |                                                                               |
 | Win32    |       ✔️        |    ✔️     |    ✔️    |  ❌   | ✔️  |                                                                               |
@@ -183,7 +184,7 @@ The provided backends on the other hand are not intended to be used directly by 
 ### Backends
 
 | Platform \ Renderer |     OpenGL 2      |      OpenGL 3       |      Vulkan      |     SDL GPU     |     DirectX 11     |     DirectX 12     |
-|---------------------|:-----------------:|:-------------------:|:----------------:|:---------------:|:------------------:|:------------------:|
+| ------------------- | :---------------: | :-----------------: | :--------------: | :-------------: | :----------------: | :----------------: |
 | Win32               | ✔️<br>`Win32_GL2` |                     | ✔️<br>`Win32_VK` |                 | ✔️<br>`Win32_DX11` | ✔️<br>`Win32_DX12` |
 | X11                 |  ✔️<br>`X11_GL2`  |                     |                  |                 |                    |                    |
 | Wayland             |                   | ✔️<br>`Wayland_GL3` |                  |                 |                    |                    |
@@ -196,7 +197,6 @@ The provided backends on the other hand are not intended to be used directly by 
 
 When building the samples, the backend can be selected by setting the CMake option `RMLUI_BACKEND` to a combination of a platform and renderer, according to the above table.
 
-
 ## Example document
 
 This example demonstrates a basic document with [data bindings](https://mikke89.github.io/RmlUiDoc/pages/data_bindings.html), which is loaded and displayed using the C++ code below.
@@ -207,19 +207,22 @@ This example demonstrates a basic document with [data bindings](https://mikke89.
 
 ```html
 <rml>
-<head>
+  <head>
     <title>Hello world</title>
-    <link type="text/rcss" href="rml.rcss"/>
-    <link type="text/rcss" href="window.rcss"/>
-</head>
-<body data-model="animals">
+    <link type="text/rcss" href="rml.rcss" />
+    <link type="text/rcss" href="window.rcss" />
+  </head>
+  <body data-model="animals">
     <h1>RmlUi</h1>
     <p>Hello <span id="world">world</span>!</p>
-    <p data-if="show_text">The quick brown fox jumps over the lazy {{animal}}.</p>
-    <input type="text" data-value="animal"/>
-</body>
+    <p data-if="show_text">
+      The quick brown fox jumps over the lazy {{animal}}.
+    </p>
+    <input type="text" data-value="animal" />
+  </body>
 </rml>
 ```
+
 The `{{animal}}` text and the `data-if`, `data-value` attributes represent data bindings and will synchronize with the application data.
 
 #### Style sheet
@@ -228,45 +231,44 @@ The `{{animal}}` text and the `data-if`, `data-value` attributes represent data 
 
 ```css
 body {
-    font-family: LatoLatin;
-    font-size: 18px;
-    color: #02475e;
-    background: #fefecc;
-    text-align: center;
-    padding: 2em 1em;
-    position: absolute;
-    border: 2px #ccc;
-    width: 500px;
-    height: 200px;
-    margin: auto;
+  font-family: LatoLatin;
+  font-size: 18px;
+  color: #02475e;
+  background: #fefecc;
+  text-align: center;
+  padding: 2em 1em;
+  position: absolute;
+  border: 2px #ccc;
+  width: 500px;
+  height: 200px;
+  margin: auto;
 }
 
 h1 {
-    color: #f6470a;
-    font-size: 1.5em;
-    font-weight: bold;
-    margin-bottom: 0.7em;
+  color: #f6470a;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 0.7em;
 }
 
-p { 
-    margin: 0.7em 0;
+p {
+  margin: 0.7em 0;
 }
 
 input.text {
-    background-color: #fff;
-    color: #555;
-    border: 2px #999;
-    padding: 5px;
-    tab-index: auto;
-    cursor: text;
-    box-sizing: border-box;
-    width: 200px;
-    font-size: 0.9em;
+  background-color: #fff;
+  color: #555;
+  border: 2px #999;
+  padding: 5px;
+  tab-index: auto;
+  cursor: text;
+  box-sizing: border-box;
+  width: 200px;
+  font-size: 0.9em;
 }
 ```
 
 RmlUi defines no styles internally, thus the `input` element is styled here, and [`rml.rcss` is included](Samples/assets/rml.rcss) for proper layout of common tags.
-
 
 #### C++ Initialization and loop
 
@@ -344,7 +346,7 @@ int main(int argc, char** argv)
         // Prepare the application for rendering, such as by clearing the window. This calls
         // into the RmlUi backend interface, replace with your own procedures as appropriate.
         Backend::BeginFrame();
-        
+
         // Render the user interface. All geometry and other rendering commands are now
         // submitted through the render interface.
         context->Render();
@@ -365,7 +367,6 @@ int main(int argc, char** argv)
 ![Hello world document](Samples/assets/hello_world.png)
 
 Users can now edit the text field to change the animal. The data bindings ensure that both the document text and the application string `my_data.animal` are automatically modified accordingly.
-
 
 ## Gallery
 
@@ -427,19 +428,19 @@ Crafting with animations and drag & drop.
 
 https://github.com/user-attachments/assets/c336e19b-3448-4d92-ad4a-72cf7ec7185c
 
-### Killing Time: Resurrected 
+### Killing Time: Resurrected
 
 [Killing Time: Resurrected](https://nightdivestudios.com/killing-time-resurrected/) by [Nightdive Studios](https://www.nightdivestudios.com/). Remastered version of the classic shooter game. User interface made with RmlUi.
 
 ![Killing Time: Resurrected collage](https://raw.githubusercontent.com/mikke89/RmlUiDoc/7ca874cc506986a789e2c9a317a4e23f359d2316/assets/gallery/killing_time_resurrected_collage.webp)
 
-### Unvanquished 
+### Unvanquished
 
 [Unvanquished](https://unvanquished.net/). A first-person shooter game with real-time strategy elements. Menus and HUD in RmlUi.
 
 ![Unvanquished 0.54 collage](https://user-images.githubusercontent.com/5490330/230487771-5108a273-8b76-4216-8324-d9e5af102622.jpg)
 
-### vkQuake + RmlUi 
+### vkQuake + RmlUi
 
 [vkQuake + RmlUi](https://github.com/bradenleague/vkQuake-RmlUi). A vkQuake fork that replaces Quake's menu and HUD systems with RmlUi. \[[teaser trailer](https://youtu.be/vEAeOuetTQ0)\]
 
@@ -540,12 +541,11 @@ Additional screenshots from thirdparty projects can be found in:
 - [Gallery discussion thread](https://github.com/mikke89/RmlUi/discussions/184).
 - [Thirdparty projects discussion thread](https://github.com/mikke89/RmlUi/discussions/186) and links therein.
 
-
 ## License
 
 ### RmlUi license
 
-RmlUi is published under the ***MIT license***, see [LICENSE.txt](LICENSE.txt).
+RmlUi is published under the **_MIT license_**, see [LICENSE.txt](LICENSE.txt).
 
 ### Third-party licenses
 
@@ -559,31 +559,32 @@ See [Include/RmlUi/Core/Containers/LICENSE.txt](Include/RmlUi/Core/Containers/LI
 
 See [Source/Debugger/LICENSE.txt](Source/Debugger/LICENSE.txt) - SIL Open Font License.
 
-#### Additional sample assets *(in Samples/)*
+#### Additional sample assets _(in Samples/)_
 
 See
+
 - [Samples/assets/LICENSE.txt](Samples/assets/LICENSE.txt)
 - [Samples/basic/bitmap_font/data/LICENSE.txt](Samples/basic/bitmap_font/data/LICENSE.txt)
 - [Samples/basic/harfbuzz/data/LICENSE.txt](Samples/basic/harfbuzz/data/LICENSE.txt)
 - [Samples/basic/lottie/data/LICENSE.txt](Samples/basic/lottie/data/LICENSE.txt)
 - [Samples/basic/svg/data/LICENSE.txt](Samples/basic/svg/data/LICENSE.txt)
 
-#### Library included with the Vulkan backend *(in Backends/RmlUi_Vulkan/)*
+#### Library included with the Vulkan backend _(in Backends/RmlUi_Vulkan/)_
 
 See [Backends/RmlUi_Vulkan/LICENSE.txt](Backends/RmlUi_Vulkan/LICENSE.txt) - MIT license.
 
-#### Library included with the DirectX 12 backend *(in Backends/RmlUi_DirectX/)*
+#### Library included with the DirectX 12 backend _(in Backends/RmlUi_DirectX/)_
 
 See [Backends/RmlUi_DirectX/LICENSE.txt](Backends/RmlUi_DirectX/LICENSE.txt) - MIT license.
 
-#### Library included with the SDL GPU backend *(in Backends/RmlUi_SDL_GPU/)*
+#### Library included with the SDL GPU backend _(in Backends/RmlUi_SDL_GPU/)_
 
 See [Backends/RmlUi_SDL_GPU/SDL_shadercross/LICENSE.txt](Backends/RmlUi_SDL_GPU/SDL_shadercross/LICENSE.txt) - Zlib license.
 
-#### Libraries included with the test suite *(in Tests/Dependencies/)*
+#### Libraries included with the test suite _(in Tests/Dependencies/)_
 
 See [Tests/Dependencies/LICENSE.txt](Tests/Dependencies/LICENSE.txt).
 
-#### Additional test suite assets *(in Tests/Data/VisualTests/)*
+#### Additional test suite assets _(in Tests/Data/VisualTests/)_
 
 See [Tests/Data/VisualTests/LICENSE.txt](Tests/Data/VisualTests/LICENSE.txt).
