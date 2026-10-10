@@ -237,11 +237,13 @@ bool ElementImage::LoadTexture()
 	else
 	{
 		// Load image from source URL.
+		// Restore the authored crop when a bound source loads or replaces a sprite.
+		rect_source = RectSource::None;
+		UpdateRect();
 		const String source_name = GetAttribute<String>("src", "");
 		if (source_name.empty())
 		{
 			texture = {};
-			rect_source = RectSource::None;
 			return false;
 		}
 
