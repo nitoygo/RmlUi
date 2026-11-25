@@ -9,13 +9,13 @@ cbuffer UniformBlockBlur : register(b0, space1) {
     float2 TexelOffset : packoffset(c2);
 };
 
-// The offsets of the samples the fragment stage takes are the same for every fragment in a row, so they are computed
-// here rather than once per fragment. The quad itself comes from the constant buffer, as in the passthrough stage.
+// The taps the fragment stage takes are spaced evenly along a row, so this stage hands over the coordinate at the
+// quad's vertex and the step between taps, and the fragment stage works out each tap. The quad itself comes from the
+// constant buffer, as in the passthrough stage.
 BlurVertexOutput main(VertexInput input) {
-    float2 tex_coord = QuadTexCoord.xy + input.TexCoord * QuadTexCoord.zw;
     BlurVertexOutput output;
-    for (int i = 0; i < BLUR_SIZE; i++)
-        output.TexCoord[i] = tex_coord - float(i - BLUR_NUM_WEIGHTS + 1) * TexelOffset;
+    output.TexCoord = QuadTexCoord.xy + input.TexCoord * QuadTexCoord.zw;
+    output.TexelOffset = TexelOffset;
     output.Position = float4(lerp(QuadPosition.xy, QuadPosition.zw, input.TexCoord), 0, 1);
     return output;
 }

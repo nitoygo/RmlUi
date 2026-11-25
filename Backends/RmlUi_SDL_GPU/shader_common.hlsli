@@ -58,14 +58,18 @@ struct PostVertexOutput {
 	float4 Position : SV_Position;
 };
 
-// Blur reads the same texel row several times, so the offsets are computed once per vertex. The array takes semantics
-// TEXCOORD0 through TEXCOORD6, which is why this interface carries no colour.
+// Blur reads the same texel row several times. The vertex stage passes the coordinate of the first tap and the step
+// between taps; the fragment stage derives the other taps from them. Neither stage passes an array to the other, which
+// WGSL does not allow between stages. Interpolation is linear, so a tap computed from the interpolated base and step
+// equals the interpolated tap. The step is constant per pass and so arrives unchanged.
 struct BlurVaryings {
-	float2 TexCoord[BLUR_SIZE] : TEXCOORD0;
+	float2 TexCoord : TEXCOORD0;
+	float2 TexelOffset : TEXCOORD1;
 };
 
 struct BlurVertexOutput {
-	float2 TexCoord[BLUR_SIZE] : TEXCOORD0;
+	float2 TexCoord : TEXCOORD0;
+	float2 TexelOffset : TEXCOORD1;
 	float4 Position : SV_Position;
 };
 
